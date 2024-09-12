@@ -134,6 +134,14 @@ public class AprilTags {
     }
 
     /**
+     * <p> Sets the limelight pipeline with no filter
+     * <p> Uses pipeline 2
+     */
+    public void setAllPipeline() {
+        LimelightHelpers.setPipelineIndex("limelight", 2);
+    }
+
+    /**
      * Sets the limelight pipeline
      * @param pipeline The pipeline ID
      */

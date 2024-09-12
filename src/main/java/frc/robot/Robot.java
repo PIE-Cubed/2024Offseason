@@ -5,7 +5,7 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.math.controller.struct.ArmFeedforwardStruct;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -26,7 +26,6 @@ public class Robot extends TimedRobot {
 
 	// Object creation
   NetworkTableInstance FCSInfo;
-	//PoseEstimation       position;
 	CustomTables         nTables;
   AprilTags            apriltags;
   Odometry             position;
@@ -96,7 +95,6 @@ public class Robot extends TimedRobot {
     apriltags = new AprilTags(nTables.getIsRedAlliance());
 		drive     = new Drive(apriltags);
 		controls  = new Controls();
-		//position  = new PoseEstimation(drive);
     position  = new Odometry(drive);
     shooter   = new Shooter();
     climber   = new Climber();
@@ -227,8 +225,7 @@ public class Robot extends TimedRobot {
     status = Robot.CONT;
 
     shooterSpinning = false;
-    //apriltags.setSpeakerPipeline();
-    //System.out.println(apriltags.getDistanceToSpeakerFeet());
+    apriltags.setAllPipeline(); // Go to generic pipeline(no filter)
 
     // Turn on the shooter motors
     //shooter.spinup();
@@ -287,6 +284,7 @@ public class Robot extends TimedRobot {
     iterCount = 0;
   }
 
+  boolean on = false;
   /** This function is called periodically during test mode. */
   @Override
   public void testPeriodic() {
@@ -358,7 +356,7 @@ public class Robot extends TimedRobot {
     // Test LEDs
     //ledControl();
 
-    System.out.println("Arm Angle: " + arm.getElevationPosition());
+    //System.out.println("Arm Angle: " + arm.getElevationPosition());
 
     //arm.extendToRest();
     //arm.rotateToRest(1.25);
@@ -403,13 +401,17 @@ public class Robot extends TimedRobot {
     //                   " | Rest Button State: " + arm.getRestButton()
     //);
 
-    System.out.println("Proximity: " + grabber.getProximity());
+    //System.out.println("Proximity: " + grabber.getProximity());
 
     // Get drive controller values
     //System.out.println("Forward speed: " + controls.getForwardSpeed() + " Strafe speed: " + controls.getStrafeSpeed() + " Rotate speed: " + controls.getRotateSpeed());
-  }
+  
+    // Test the modified autoDriveToPoints
+    final Pose2d points[] = {
 
-  boolean on = false;
+    };
+    int status = drive.autoDriveToPointsNew(points, position.getAprilTagsPose());
+  }
 
   /** This function is called once when the robot is first started up. */
   @Override
@@ -458,7 +460,7 @@ public class Robot extends TimedRobot {
         teleopState = TeleopState.TELEOP;
       }
     }
-    else if(teleopState == TeleopState.TARGET) {
+    else if(teleopState == TeleopState.TARGET) {  // Runs targetSpeaker auto (looks at speaker)
       apriltags.setSpeakerPipeline();   // Set the pipeline depending on alliance color(0,ID4,Red, 1,ID7,Blue)
       int targetStatus = auto.targetSpeaker();
       
@@ -472,7 +474,7 @@ public class Robot extends TimedRobot {
         teleopState = TeleopState.TELEOP;
       }
     }
-    else if (teleopState == TeleopState.CRAB_SHOOT) {
+    else if (teleopState == TeleopState.CRAB_SHOOT) { // Continuously target the speaker and allow driver to move
       drive.maintainShootingWithCrabDrive(forwardSpeed, strafeSpeed);
 
       if (driveWhileAligning == false) {
@@ -633,7 +635,7 @@ public class Robot extends TimedRobot {
             armState = ArmState.SHOOT;
           }
       }
-      else if (armState == ArmState.CRAB_SHOOT)
+      else if (armState == ArmState.CRAB_SHOOT) // Keep arm angled to the speaker
       {
           //armRotateStatus = arm.rotateArm(arm.ARM_REST_POSITION_DEGREES);
           //armStatus = arm.extendToRest();

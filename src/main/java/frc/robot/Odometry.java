@@ -142,4 +142,33 @@ public class Odometry {
             drive.getBRPosition()
         };
     }
+
+    /*******************************************************************************************
+     *
+     *                                      TEST FUNCTIONS
+     * 
+     *******************************************************************************************/
+    /**
+     * <p> Prints the current estimated pose from the encoders
+    */
+     public void printEncoderEstimatorPose() {
+        printPose(getEncoderPose());
+    }
+    /**
+     * <p> Prints the current estimated pose from the AprilTags
+    */
+    public void printAprilTagEstimatorPose() {
+        printPose(getAprilTagsPose());
+    }
+    /**
+     * <p> Prints the given pose
+    */
+    public void printPose(Pose2d pose) {
+        Rotation2d rotation = pose.getRotation();
+
+        System.out.println(
+            "Field Position: (" + pose.getX() + ", " + pose.getY() + ")\n" +
+            "Field Rotation: (" + rotation.getDegrees() + "deg, " + rotation.getRadians() + "rad"
+        );
+    }
 }

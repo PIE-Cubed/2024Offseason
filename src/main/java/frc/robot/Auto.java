@@ -45,18 +45,18 @@ public class Auto {
 
     // Object Creation
     private Drive          drive;
-    //private PoseEstimation position;
     private CustomTables   nTables;
     private Arm            arm;
     private Grabber        grabber;
     private Shooter        shooter;
     private AprilTags      apriltags;
+    private Odometry       position;
 
     // Constructor
     public Auto(Drive drive, Odometry position, Arm arm, Grabber grabber, Shooter shooter, AprilTags apriltags) {
         this.drive     = drive;
         this.grabber   = grabber;
-        //this.position = position;
+        this.position = position;
         this.arm       = arm;
         this.nTables   = CustomTables.getInstance();
         this.shooter   = shooter;
