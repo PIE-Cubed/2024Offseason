@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.units.Angle;
@@ -383,6 +384,7 @@ public class Auto {
      * <p> Fully retracts arm
      * <p> First rotates, then retracts the arm
      * <p> This currently takes 11 seconds for a full auto cycle
+     * <p> USES ODOMETRY
      * @return Robot status, CONT or DONE
      */
     public int speakerPositionCenter() {
@@ -427,7 +429,6 @@ public class Auto {
             // Rotate the arm to it's resting position and turn off the shooter and Switch the grabber to intake mode
             case 6:
                 shooter.spindown();
-                //status = restingPosition();
                 break;
 
             // Extend the arm so the wood holding block falls into the robot, and so the arm is in the shooting position
@@ -437,24 +438,19 @@ public class Auto {
 
             // Drive backwards 4 1/2 feet
             case 8:
-                //arm.maintainPosition(arm.ARM_REST_POSITION_DEGREES);
-
-                if (intakeStatus == Robot.CONT) {
-                    /*if (grabber.noteDetected() == false) {
-                        intakeStatus = Robot.DONE;
-                    }*/
-
+                if(intakeStatus == Robot.CONT) {
                     intakeStatus = grabber.intakeOutake(true, false, true);
                 }
-                else{
+                else {
                     grabber.setMotorPower(0);
                 }
                 
-                if (driveStatus == Robot.CONT) {
+                if(driveStatus == Robot.CONT) {
                     driveStatus = drive.driveDistanceWithAngle(0, 4.5, 0.2);
+                    //driveStatus = drive.driveDistanceWithAngleAT(0, 4.5, 0.2);
                 }
                 
-                if (intakeStatus == Robot.DONE && driveStatus == Robot.DONE) {
+                if(intakeStatus == Robot.DONE && driveStatus == Robot.DONE) {
                     status = Robot.DONE;
                 }
                 else {
@@ -465,15 +461,12 @@ public class Auto {
 
             // Prepare to shoot
             case 9:
-                //arm.maintainPosition(SHOOT1_ANGLE);
-                //status = drive.driveDistanceWithAngle(0, -5.3, 0.5);
                 shooter.spinup();
                 status = restingPosition();
                 break;
 
             case 10:
                 apriltagShootAngle = apriltags.calculateArmAngleToShoot();
-                //System.out.println(apriltagShootAngle);
                 status = arm.rotateArm(apriltagShootAngle);
                 break;
 
@@ -1233,6 +1226,39 @@ public class Auto {
         }
     }
 
+    /**
+     * </p>Automatically drives through a list of points
+     * </p>Pretty much just calls Odometry.getAprilTagsPose() for you
+     * 
+     * @param points The list of points to drive through
+     */
+    public int driveThroughPoints(Pose2d[] points) {
+        int status = Robot.CONT;
+
+        if(firstTime == true) {
+            firstTime = false;
+            step = 1;
+        }
+
+        switch(step) {
+            case 1:
+                Pose2d currentPose = position.getAprilTagsPose();
+                
+                status = drive.autoDriveToPointsNew(points, currentPose);
+                break;
+            default:
+                step = 1;
+                firstTime = true;
+                return Robot.DONE;
+        }
+
+        // Done current step, goto next one
+        if(status == Robot.DONE) {
+            step++;
+        }
+
+        return Robot.CONT;
+    }
 
     /****************************************************************************************** 
      *
